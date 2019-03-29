@@ -1,6 +1,8 @@
 #include <Eigen/Eigen>
 #include <iostream>
 #include "mesh.h"
+#include "Element.h"
+#include "Quad4_Element.h"
 
 using namespace std;
 static char help[] = "Is something breaking? Is it also breaking over time? Then this is the software for you.\n\n";
@@ -16,6 +18,10 @@ int main(int argc, char **args)
 	err = Abaqus_io_mesh.Redistribute(); CHKERRQ(err);
 
 	err = PetscFinalize();
+
+	// Temp test for Quad4 routine being called
+	Quad4_Element Q4;
+	Q4.cal_ke();
 
 	return 0;
 

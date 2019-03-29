@@ -16,9 +16,13 @@ COMPILE = mpicxx -fPIC -Wall -Wwrite-strings -Wno-strict-aliasing -Wno-unknown-p
 	  -I ./include
 LINK = mpicxx -fPIC -Wall -Wwrite-strings -Wno-strict-aliasing -Wno-unknown-pragmas ${OPT_FLAG}
 
-output: src/main.o src/mesh.o
-	${LINK} main.o mesh.o -o output ${PETSC_KSP_LIB}
+output: src/main.o src/mesh.o src/Element.o src/Quad4_Element.o
+	${LINK} main.o mesh.o Element.o Quad4_Element.o -o output ${PETSC_KSP_LIB}
 src/main.o: src/main.cc
 	${COMPILE} -c src/main.cc
 src/mesh.o: src/mesh.cc
 	${COMPILE} -c src/mesh.cc
+src/Element.o: src/Element.cc
+	${COMPILE} -c src/Element.cc
+src/Quad4_Element.o: src/Quad4_Element.cc
+	${COMPILE} -c src/Quad4_Element.cc
