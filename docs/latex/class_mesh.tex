@@ -183,8 +183,8 @@ Definition at line 24 of file mesh.\+cc.
 84           \textcolor{keywordtype}{int} Node1 =0 , Node2 =0 , Node3 = 0 , Node4 =0;
 85           ss >> abaqus\_el\_id >> c >> Node1 >> c >>Node2 >> c >> Node3 >> c >> Node4 ;
 86           \textcolor{comment}{// add -1 here becasue we are using a zero Node numbering zero is the first Node}
-87           Element.conservativeResize(i+1, 4);
-88           Element.row(i)<<Node1-1,Node2-1,Node3-1,Node4-1;
+87           \mbox{\hyperlink{class_element}{Element}}.conservativeResize(i+1, 4);
+88           \mbox{\hyperlink{class_element}{Element}}.row(i)<<Node1-1,Node2-1,Node3-1,Node4-1;
 89           i++;
 90         \}
 91       \}
@@ -193,7 +193,7 @@ Definition at line 24 of file mesh.\+cc.
 94     \}
 95 
 96     \textcolor{comment}{// Set distribution variables}
-97     nLocElem = Element.rows();
+97     nLocElem = \mbox{\hyperlink{class_element}{Element}}.rows();
 98     nLocNode = Node.rows();
 99     elDist.setConstant(nprocs+1, nLocElem);
 100     ndDist.setConstant(nprocs+1, nLocNode);
@@ -225,77 +225,77 @@ Definition at line 24 of file mesh.\+cc.
 \subsubsection{\texorpdfstring{Elem\+Dist()}{ElemDist()}}
 {\footnotesize\ttfamily Petsc\+Error\+Code Mesh\+::\+Elem\+Dist (\begin{DoxyParamCaption}\item[{Eigen\+::\+Array$<$ Petsc\+Int, -\/1, 1 $>$ \&}]{partition }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}}
 
-Redistribute Elements Reallocate Elements Note abbreviations\+: senddisp = first Element in array sent to each process sendcnt = how many Elements sent to each process -\/ TO BE R\+E\+M\+O\+V\+ED transfer\+Size = how many Elements each process is sending to the other processes recvcnt = how many Elements received from each process recvdsp = beginning location of buffer to receive Elements from each process elmcpy = a copy of Element reordered for continguous send buffers where = after initial sorting, the local number of each Element permute = permutation vector for filter matrix (global) 
+Redistribute Elements Reallocate Elements Note abbreviations\+: senddisp = first \mbox{\hyperlink{class_element}{Element}} in array sent to each process sendcnt = how many Elements sent to each process -\/ TO BE R\+E\+M\+O\+V\+ED transfer\+Size = how many Elements each process is sending to the other processes recvcnt = how many Elements received from each process recvdsp = beginning location of buffer to receive Elements from each process elmcpy = a copy of \mbox{\hyperlink{class_element}{Element}} reordered for continguous send buffers where = after initial sorting, the local number of each \mbox{\hyperlink{class_element}{Element}} permute = permutation vector for filter matrix (global) 
 
-Definition at line 297 of file mesh.\+cc.
+Definition at line 327 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-298 \{
-299   PetscErrorCode ierr = 0;
-309   \textcolor{comment}{// Initialize transfer Variables}
-310   \textcolor{keywordtype}{short} elementSize = pow(2,nDims);
-311   ArrayXI where = EigLab::gensort(partition).cast<PetscInt>();
-312   ArrayXXI transferSize = ArrayXXI::Zero(nprocs,nprocs);
-313   ArrayXXIRM elmcpy(Element.rows(),Element.cols());
-314   \textcolor{keywordflow}{for} (PetscInt i = 0; i < partition.rows(); i++)
-315   \{
-316     elmcpy.row(i) = Element.row(where(i));
-317     transferSize(partition(i),myid)++;
-318   \}
-319 
-320   \textcolor{comment}{// How many Elements are transferred between each pair of processes}
-321   MPI\_Allgather(MPI\_IN\_PLACE, 0, MPIU\_INT, transferSize.data(),
-322                 nprocs, MPIU\_INT, comm);
-323   Eigen::ArrayXi sendcnt = elementSize*transferSize.col(myid).cast<\textcolor{keywordtype}{int}>();
-324   Eigen::ArrayXi recvcnt = elementSize*transferSize.row(myid).cast<\textcolor{keywordtype}{int}>();
-325 
-326   \textcolor{comment}{// Offsets in sent messages}
-327   Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
-328   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-329     senddsp(i) = sendcnt(i-1) + senddsp(i-1);
-330 
-331   \textcolor{comment}{// Offsets in received messages}
-332   Eigen::ArrayXi recvdsp = Eigen::ArrayXi::Zero(nprocs);
-333   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-334     recvdsp(i) = recvcnt(i-1) + recvdsp(i-1);
-335 
-336   \textcolor{comment}{// The Element transfer}
-337   Element.resize(recvcnt.sum()/elementSize, elementSize);
-338   MPI\_Alltoallv(elmcpy.data(), sendcnt.data(), senddsp.data(),
-339                 MPIU\_INT, Element.data(), recvcnt.data(),
-340                 recvdsp.data(), MPIU\_INT, comm);
-341 
-342   \textcolor{comment}{// Update distribution across processes}
-343   elDist(myid+1) = Element.rows();
-344   nLocElem = Element.rows();
-345   MPI\_Allgather(MPI\_IN\_PLACE, 0, MPI\_DATATYPE\_NULL, elDist.data()+1,
-346                 1, MPIU\_INT, comm);
-347   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i <= nprocs; i++)
-348     elDist(i) += elDist(i-1);
+328 \{
+329   PetscErrorCode ierr = 0;
+339   \textcolor{comment}{// Initialize transfer Variables}
+340   \textcolor{keywordtype}{short} elementSize = pow(2,nDims);
+341   ArrayXI where = EigLab::gensort(partition).cast<PetscInt>();
+342   ArrayXXI transferSize = ArrayXXI::Zero(nprocs,nprocs);
+343   ArrayXXIRM elmcpy(\mbox{\hyperlink{class_element}{Element}}.rows(),\mbox{\hyperlink{class_element}{Element}}.cols());
+344   \textcolor{keywordflow}{for} (PetscInt i = 0; i < partition.rows(); i++)
+345   \{
+346     elmcpy.row(i) = \mbox{\hyperlink{class_element}{Element}}.row(where(i));
+347     transferSize(partition(i),myid)++;
+348   \}
 349 
-350   \textcolor{comment}{// Create global permutation array after sharing Elements}
-351   \textcolor{comment}{// This is currently assembling a global vector on all processes and reducing}
-352   \textcolor{comment}{// it.  The performance could possibly be improved by sharing the local parts}
-353   \textcolor{comment}{// and then assembling after transfer, thereby reducing communications.}
-354   \textcolor{comment}{// Permute = permutation vector, permute(i) = newi}
-355   \textcolor{comment}{// Indices = vector indicating where this process can start assigning Elements}
-356   \textcolor{comment}{//            on each process (i.e. global locations in the permute vector)}
-357   ArrayXI permute = ArrayXI::Zero(nElem);
-358   ArrayXI indices = ArrayXI::Zero(nprocs);
-359   indices.segment(1,nprocs-1) = transferSize.block(0, 0, nprocs-1, nprocs)
-360                                 .rowwise().sum();
-361   partial\_sum(indices.data(), indices.data()+nprocs, indices.data());
-362   indices += transferSize.block(0, 0, nprocs, myid).rowwise().sum();
-363   \textcolor{keywordtype}{int} permuteStart = transferSize.block(0, 0, nprocs, myid).sum();
-364   \textcolor{keywordflow}{for} (PetscInt i = 0; i < partition.rows(); i++)
-365   \{
-366     permute(where(i)+permuteStart) = indices(partition(i))++;
-367   \}
-368   MPI\_Allreduce(MPI\_IN\_PLACE, permute.data(), nElem, MPIU\_INT, MPI\_SUM, comm);
-369 
-370   \textcolor{keywordflow}{return} ierr;
-371 \}
+350   \textcolor{comment}{// How many Elements are transferred between each pair of processes}
+351   MPI\_Allgather(MPI\_IN\_PLACE, 0, MPIU\_INT, transferSize.data(),
+352                 nprocs, MPIU\_INT, comm);
+353   Eigen::ArrayXi sendcnt = elementSize*transferSize.col(myid).cast<\textcolor{keywordtype}{int}>();
+354   Eigen::ArrayXi recvcnt = elementSize*transferSize.row(myid).cast<\textcolor{keywordtype}{int}>();
+355 
+356   \textcolor{comment}{// Offsets in sent messages}
+357   Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
+358   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+359     senddsp(i) = sendcnt(i-1) + senddsp(i-1);
+360 
+361   \textcolor{comment}{// Offsets in received messages}
+362   Eigen::ArrayXi recvdsp = Eigen::ArrayXi::Zero(nprocs);
+363   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+364     recvdsp(i) = recvcnt(i-1) + recvdsp(i-1);
+365 
+366   \textcolor{comment}{// The Element transfer}
+367   \mbox{\hyperlink{class_element}{Element}}.resize(recvcnt.sum()/elementSize, elementSize);
+368   MPI\_Alltoallv(elmcpy.data(), sendcnt.data(), senddsp.data(),
+369                 MPIU\_INT, \mbox{\hyperlink{class_element}{Element}}.data(), recvcnt.data(),
+370                 recvdsp.data(), MPIU\_INT, comm);
+371 
+372   \textcolor{comment}{// Update distribution across processes}
+373   elDist(myid+1) = \mbox{\hyperlink{class_element}{Element}}.rows();
+374   nLocElem = \mbox{\hyperlink{class_element}{Element}}.rows();
+375   MPI\_Allgather(MPI\_IN\_PLACE, 0, MPI\_DATATYPE\_NULL, elDist.data()+1,
+376                 1, MPIU\_INT, comm);
+377   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i <= nprocs; i++)
+378     elDist(i) += elDist(i-1);
+379 
+380   \textcolor{comment}{// Create global permutation array after sharing Elements}
+381   \textcolor{comment}{// This is currently assembling a global vector on all processes and reducing}
+382   \textcolor{comment}{// it.  The performance could possibly be improved by sharing the local parts}
+383   \textcolor{comment}{// and then assembling after transfer, thereby reducing communications.}
+384   \textcolor{comment}{// Permute = permutation vector, permute(i) = newi}
+385   \textcolor{comment}{// Indices = vector indicating where this process can start assigning Elements}
+386   \textcolor{comment}{//            on each process (i.e. global locations in the permute vector)}
+387   ArrayXI permute = ArrayXI::Zero(nElem);
+388   ArrayXI indices = ArrayXI::Zero(nprocs);
+389   indices.segment(1,nprocs-1) = transferSize.block(0, 0, nprocs-1, nprocs)
+390                                 .rowwise().sum();
+391   partial\_sum(indices.data(), indices.data()+nprocs, indices.data());
+392   indices += transferSize.block(0, 0, nprocs, myid).rowwise().sum();
+393   \textcolor{keywordtype}{int} permuteStart = transferSize.block(0, 0, nprocs, myid).sum();
+394   \textcolor{keywordflow}{for} (PetscInt i = 0; i < partition.rows(); i++)
+395   \{
+396     permute(where(i)+permuteStart) = indices(partition(i))++;
+397   \}
+398   MPI\_Allreduce(MPI\_IN\_PLACE, permute.data(), nElem, MPIU\_INT, MPI\_SUM, comm);
+399 
+400   \textcolor{keywordflow}{return} ierr;
+401 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_a1930d80c707de6d202dac7cef0022257}\label{class_mesh_a1930d80c707de6d202dac7cef0022257}} 
 \index{Mesh@{Mesh}!Expand\+\_\+\+Node@{Expand\+\_\+\+Node}}
@@ -323,75 +323,75 @@ Ship the Nodes
 
 Update the global Node list 
 
-Definition at line 452 of file mesh.\+cc.
+Definition at line 482 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-453 \{
-454   PetscErrorCode ierr = 0;
-455 
-457   ArrayXI ndlist = Eigen::Map<ArrayXI>(Element.data(),Element.size());
-458   EigLab::Unique(ndlist, 1);
-459 
-461   PetscInt ind = 0, nind = 0;
-462   \textcolor{keywordflow}{for} (PetscInt i = 0; i < ndlist.rows(); i++)
-463   \{
-464       \textcolor{keywordflow}{if} (ind == gNode.size())
-465       \{
-466           ndlist.segment(nind, ndlist.rows()-i) = ndlist.segment(i, ndlist.rows()-i);
-467           nind += ndlist.rows()-i;
-468           \textcolor{keywordflow}{break};
-469       \}
-470       \textcolor{keywordflow}{if} (gNode(ind) != ndlist(i))
-471           ndlist(nind++) = ndlist(i);
-472       \textcolor{keywordflow}{else}
-473           ind++;
-474   \}
-475   ndlist.conservativeResize(nind);
-476 
-478   ArrayXI where( ndlist.rows() );
-479   Eigen::ArrayXi perproc = Eigen::ArrayXi::Zero( nprocs );
-480   \textcolor{keywordtype}{short} proc = 0;
-481   \textcolor{keywordflow}{for} (PetscInt i = 0; i < ndlist.rows(); i++)
-482   \{
-483       \textcolor{keywordflow}{while}( ndlist(i) >= ndDist(proc+1) )
-484           proc++;
-485       where(i) = proc;
-486       perproc(proc)++;
-487   \}
-488 
-490   Eigen::ArrayXi sendcnt(nprocs);
-491   MPI\_Alltoall(perproc.data(), 1, MPI\_INT, sendcnt.data(), 1, MPI\_INT, comm);
-492 
-494   Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
-495   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-496       senddsp(i) = sendcnt(i-1) + senddsp(i-1);
-497 
-499   Eigen::ArrayXi perprocdisp = Eigen::ArrayXi::Zero(nprocs);
-500   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-501       perprocdisp(i) = perprocdisp(i-1)+perproc(i-1);
-502 
-504   ArrayXI sendnd(sendcnt.sum());
-505   MPI\_Alltoallv(ndlist.data(), perproc.data(), perprocdisp.data(),
-506                 MPIU\_INT, sendnd.data(), sendcnt.data(),
-507                 senddsp.data(), MPIU\_INT, comm);
-508 
-510   ArrayXXSRM ndpack(sendcnt.sum(),nDims);
-511   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < sendcnt.sum(); i++)
-512       ndpack.row(i) = Node.row(sendnd(i)-ndDist(myid));
-513 
-515   Node.conservativeResize(nLocNode+perproc.sum(), nDims);
-516   perprocdisp += nLocNode; perprocdisp *= nDims;
-517   sendcnt *= nDims; senddsp *= nDims; perproc *= nDims;
-518   MPI\_Alltoallv(ndpack.data(), sendcnt.data(), senddsp.data(),
-519                 MPI\_DOUBLE, Node.data(), perproc.data(),
-520                 perprocdisp.data(), MPI\_DOUBLE, comm);
-521 
-523   gNode.conservativeResize(Node.rows());
-524   gNode.segment(nLocNode, ndlist.rows()) = ndlist;
-525 
-526   \textcolor{keywordflow}{return} ierr;
-527 \}
+483 \{
+484   PetscErrorCode ierr = 0;
+485 
+487   ArrayXI ndlist = Eigen::Map<ArrayXI>(\mbox{\hyperlink{class_element}{Element}}.data(),\mbox{\hyperlink{class_element}{Element}}.size());
+488   EigLab::Unique(ndlist, 1);
+489 
+491   PetscInt ind = 0, nind = 0;
+492   \textcolor{keywordflow}{for} (PetscInt i = 0; i < ndlist.rows(); i++)
+493   \{
+494       \textcolor{keywordflow}{if} (ind == gNode.size())
+495       \{
+496           ndlist.segment(nind, ndlist.rows()-i) = ndlist.segment(i, ndlist.rows()-i);
+497           nind += ndlist.rows()-i;
+498           \textcolor{keywordflow}{break};
+499       \}
+500       \textcolor{keywordflow}{if} (gNode(ind) != ndlist(i))
+501           ndlist(nind++) = ndlist(i);
+502       \textcolor{keywordflow}{else}
+503           ind++;
+504   \}
+505   ndlist.conservativeResize(nind);
+506 
+508   ArrayXI where( ndlist.rows() );
+509   Eigen::ArrayXi perproc = Eigen::ArrayXi::Zero( nprocs );
+510   \textcolor{keywordtype}{short} proc = 0;
+511   \textcolor{keywordflow}{for} (PetscInt i = 0; i < ndlist.rows(); i++)
+512   \{
+513       \textcolor{keywordflow}{while}( ndlist(i) >= ndDist(proc+1) )
+514           proc++;
+515       where(i) = proc;
+516       perproc(proc)++;
+517   \}
+518 
+520   Eigen::ArrayXi sendcnt(nprocs);
+521   MPI\_Alltoall(perproc.data(), 1, MPI\_INT, sendcnt.data(), 1, MPI\_INT, comm);
+522 
+524   Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
+525   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+526       senddsp(i) = sendcnt(i-1) + senddsp(i-1);
+527 
+529   Eigen::ArrayXi perprocdisp = Eigen::ArrayXi::Zero(nprocs);
+530   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+531       perprocdisp(i) = perprocdisp(i-1)+perproc(i-1);
+532 
+534   ArrayXI sendnd(sendcnt.sum());
+535   MPI\_Alltoallv(ndlist.data(), perproc.data(), perprocdisp.data(),
+536                 MPIU\_INT, sendnd.data(), sendcnt.data(),
+537                 senddsp.data(), MPIU\_INT, comm);
+538 
+540   ArrayXXSRM ndpack(sendcnt.sum(),nDims);
+541   \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < sendcnt.sum(); i++)
+542       ndpack.row(i) = Node.row(sendnd(i)-ndDist(myid));
+543 
+545   Node.conservativeResize(nLocNode+perproc.sum(), nDims);
+546   perprocdisp += nLocNode; perprocdisp *= nDims;
+547   sendcnt *= nDims; senddsp *= nDims; perproc *= nDims;
+548   MPI\_Alltoallv(ndpack.data(), sendcnt.data(), senddsp.data(),
+549                 MPI\_DOUBLE, Node.data(), perproc.data(),
+550                 perprocdisp.data(), MPI\_DOUBLE, comm);
+551 
+553   gNode.conservativeResize(Node.rows());
+554   gNode.segment(nLocNode, ndlist.rows()) = ndlist;
+555 
+556   \textcolor{keywordflow}{return} ierr;
+557 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_af9e180bd8adb9c495e6c38840ea19f10}\label{class_mesh_af9e180bd8adb9c495e6c38840ea19f10}} 
 \index{Mesh@{Mesh}!Initialize\+\_\+\+Vectors@{Initialize\+\_\+\+Vectors}}
@@ -401,26 +401,26 @@ Definition at line 452 of file mesh.\+cc.
 
 Set up ghost communications for P\+Et\+Sc vectors 
 
-Definition at line 532 of file mesh.\+cc.
+Definition at line 562 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-533 \{
-534     PetscErrorCode ierr = 0;
-535     \textcolor{comment}{// Nodal ghost info}
-536     ArrayXXIRM ghosts( gNode.size()-nLocNode, nDims );
-537     ghosts.col(0) = nDims*gNode.segment( nLocNode,gNode.size()-nLocNode );
-538     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nDims; i++)
-539       ghosts.col(i) = ghosts.col(i-1) + 1;
-540 
-541     ierr = VecCreateGhost(comm, nDims*nLocNode, nDims*nNode,
-542                           ghosts.size(), ghosts.data(), &U); CHKERRQ(ierr);
-543     ierr = VecSet(U, 0.0); CHKERRQ(ierr);
-544     ierr = VecDuplicate(U, &F); CHKERRQ(ierr);
-545     ierr = VecSet(F, 0.0); CHKERRQ(ierr);
-546 
-547     \textcolor{keywordflow}{return} ierr;
-548 \}
+563 \{
+564     PetscErrorCode ierr = 0;
+565     \textcolor{comment}{// Nodal ghost info}
+566     ArrayXXIRM ghosts( gNode.size()-nLocNode, nDims );
+567     ghosts.col(0) = nDims*gNode.segment( nLocNode,gNode.size()-nLocNode );
+568     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nDims; i++)
+569       ghosts.col(i) = ghosts.col(i-1) + 1;
+570 
+571     ierr = VecCreateGhost(comm, nDims*nLocNode, nDims*nNode,
+572                           ghosts.size(), ghosts.data(), &U); CHKERRQ(ierr);
+573     ierr = VecSet(U, 0.0); CHKERRQ(ierr);
+574     ierr = VecDuplicate(U, &F); CHKERRQ(ierr);
+575     ierr = VecSet(F, 0.0); CHKERRQ(ierr);
+576 
+577     \textcolor{keywordflow}{return} ierr;
+578 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_a54a12376bf99f4f4991af01fc23c9c09}\label{class_mesh_a54a12376bf99f4f4991af01fc23c9c09}} 
 \index{Mesh@{Mesh}!Localize@{Localize}}
@@ -430,22 +430,22 @@ Definition at line 532 of file mesh.\+cc.
 
 Convert global numberings to local numberings Convert Elements to local Node numbers 
 
-Definition at line 553 of file mesh.\+cc.
+Definition at line 583 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-554 \{
-555     PetscErrorCode ierr = 0;
-556 
-558     PetscInt *start = gNode.data(), *finish = gNode.data()+gNode.size();
-559     \textcolor{keywordflow}{for} (PetscInt i = 0; i < Element.rows(); i++)
-560     \{
-561         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} j = 0; j < Element.cols(); j++)
-562             Element(i,j) = std::find(start, finish, Element(i,j)) - start;
-563     \}
-564 
-565     \textcolor{keywordflow}{return} ierr;
-566 \}
+584 \{
+585     PetscErrorCode ierr = 0;
+586 
+588     PetscInt *start = gNode.data(), *finish = gNode.data()+gNode.size();
+589     \textcolor{keywordflow}{for} (PetscInt i = 0; i < \mbox{\hyperlink{class_element}{Element}}.rows(); i++)
+590     \{
+591         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} j = 0; j < \mbox{\hyperlink{class_element}{Element}}.cols(); j++)
+592             \mbox{\hyperlink{class_element}{Element}}(i,j) = std::find(start, finish, \mbox{\hyperlink{class_element}{Element}}(i,j)) - start;
+593     \}
+594 
+595     \textcolor{keywordflow}{return} ierr;
+596 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_aa6b19f4fdf210f8937694e8c7d30ea15}\label{class_mesh_aa6b19f4fdf210f8937694e8c7d30ea15}} 
 \index{Mesh@{Mesh}!Node\+Dist@{Node\+Dist}}
@@ -470,74 +470,74 @@ The Node transfer
 
 Update the distribution of Nodes
 
-Renumber Nodes in Element array 
+Renumber Nodes in \mbox{\hyperlink{class_element}{Element}} array 
 
-Definition at line 376 of file mesh.\+cc.
+Definition at line 406 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-377 \{
-378     PetscErrorCode ierr = 0;
-379 
-381     Eigen::Array<short,-1,1> pckproc = Eigen::Array<short,-1,1>::Zero(nNode);
-382     \textcolor{keywordflow}{for} (PetscInt el = 0; el < Element.rows(); el++)
-383     \{
-384         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} nd = 0; nd < pow(2, nDims); nd++)
-385             pckproc(Element(el,nd)) = myid;
-386     \}
-387 
-388     \textcolor{comment}{// Assign Nodes to the highest numbered processor that uses them}
-389     MPI\_Allreduce(MPI\_IN\_PLACE, pckproc.data(), nNode, MPI\_SHORT, MPI\_MAX, comm);
-390 
-392     Eigen::Array<short,-1,1> locpart = pckproc.segment(ndDist(myid),nLocNode);
-393     ArrayXI reorder = EigLab::gensort(locpart).cast<PetscInt>();
-396     ArrayXXSRM ndcpy(Node.rows(),Node.cols());
-397     Eigen::ArrayXi sendcnt = Eigen::ArrayXi::Zero(nprocs);
-398     \textcolor{keywordflow}{for} (PetscInt i = 0; i < locpart.rows(); i++)
-399     \{
-400         ndcpy.row(i) = Node.row(reorder(i)).transpose();
-401         sendcnt(locpart(i))++;
-402     \}
-403 
-404     \textcolor{comment}{// How much to receive from every process}
-405     Eigen::ArrayXi recvcnt(nprocs);
-406     MPI\_Alltoall(sendcnt.data(), 1, MPI\_INT, recvcnt.data(), 1, MPI\_INT, comm);
-407 
-409     Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
-410     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-411         senddsp(i) = nDims*sendcnt(i-1) + senddsp(i-1);
-412 
-414     Eigen::ArrayXi recvdsp = Eigen::ArrayXi::Zero(nprocs);
-415     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
-416         recvdsp(i) = nDims*recvcnt(i-1) + recvdsp(i-1);
+407 \{
+408     PetscErrorCode ierr = 0;
+409 
+411     Eigen::Array<short,-1,1> pckproc = Eigen::Array<short,-1,1>::Zero(nNode);
+412     \textcolor{keywordflow}{for} (PetscInt el = 0; el < \mbox{\hyperlink{class_element}{Element}}.rows(); el++)
+413     \{
+414         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} nd = 0; nd < pow(2, nDims); nd++)
+415             pckproc(\mbox{\hyperlink{class_element}{Element}}(el,nd)) = myid;
+416     \}
 417 
-419     Node.resize(recvcnt.sum(),nDims);
-420     recvcnt *= nDims; sendcnt *= nDims;
-421     MPI\_Alltoallv(ndcpy.data(), sendcnt.data(), senddsp.data(),
-422                   MPI\_DOUBLE, Node.data(), recvcnt.data(),
-423                   recvdsp.data(), MPI\_DOUBLE, comm);
-424 
-426     ndDist.setZero(nprocs+1);
-427     nLocNode = Node.rows();
-428     ndDist(myid+1) = Node.rows();
-429     MPI\_Allreduce(MPI\_IN\_PLACE, ndDist.data()+1, nprocs, MPIU\_INT, MPI\_MAX, comm);
-430     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i <= nprocs; i++)
-431         ndDist(i) += ndDist(i-1);
-432 
-434     reorder = EigLab::gensort(pckproc).cast<PetscInt>();
-435     ArrayXI invreorder(reorder.rows());
-436     \textcolor{keywordflow}{for} (PetscInt i = 0; i < reorder.rows(); i++)
-437       invreorder(reorder(i)) = i;
-438     \textcolor{keywordflow}{for} (PetscInt el = 0; el < Element.rows(); el++)
-439     \{
-440         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} nd = 0; nd < pow(2,nDims); nd++)
-441         \{
-442             Element(el,nd) = invreorder(Element(el,nd));
-443         \}
-444     \}
-445 
-446     \textcolor{keywordflow}{return} ierr;
-447 \}
+418     \textcolor{comment}{// Assign Nodes to the highest numbered processor that uses them}
+419     MPI\_Allreduce(MPI\_IN\_PLACE, pckproc.data(), nNode, MPI\_SHORT, MPI\_MAX, comm);
+420 
+422     Eigen::Array<short,-1,1> locpart = pckproc.segment(ndDist(myid),nLocNode);
+423     ArrayXI reorder = EigLab::gensort(locpart).cast<PetscInt>();
+426     ArrayXXSRM ndcpy(Node.rows(),Node.cols());
+427     Eigen::ArrayXi sendcnt = Eigen::ArrayXi::Zero(nprocs);
+428     \textcolor{keywordflow}{for} (PetscInt i = 0; i < locpart.rows(); i++)
+429     \{
+430         ndcpy.row(i) = Node.row(reorder(i)).transpose();
+431         sendcnt(locpart(i))++;
+432     \}
+433 
+434     \textcolor{comment}{// How much to receive from every process}
+435     Eigen::ArrayXi recvcnt(nprocs);
+436     MPI\_Alltoall(sendcnt.data(), 1, MPI\_INT, recvcnt.data(), 1, MPI\_INT, comm);
+437 
+439     Eigen::ArrayXi senddsp = Eigen::ArrayXi::Zero(nprocs);
+440     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+441         senddsp(i) = nDims*sendcnt(i-1) + senddsp(i-1);
+442 
+444     Eigen::ArrayXi recvdsp = Eigen::ArrayXi::Zero(nprocs);
+445     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i < nprocs; i++)
+446         recvdsp(i) = nDims*recvcnt(i-1) + recvdsp(i-1);
+447 
+449     Node.resize(recvcnt.sum(),nDims);
+450     recvcnt *= nDims; sendcnt *= nDims;
+451     MPI\_Alltoallv(ndcpy.data(), sendcnt.data(), senddsp.data(),
+452                   MPI\_DOUBLE, Node.data(), recvcnt.data(),
+453                   recvdsp.data(), MPI\_DOUBLE, comm);
+454 
+456     ndDist.setZero(nprocs+1);
+457     nLocNode = Node.rows();
+458     ndDist(myid+1) = Node.rows();
+459     MPI\_Allreduce(MPI\_IN\_PLACE, ndDist.data()+1, nprocs, MPIU\_INT, MPI\_MAX, comm);
+460     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} i = 1; i <= nprocs; i++)
+461         ndDist(i) += ndDist(i-1);
+462 
+464     reorder = EigLab::gensort(pckproc).cast<PetscInt>();
+465     ArrayXI invreorder(reorder.rows());
+466     \textcolor{keywordflow}{for} (PetscInt i = 0; i < reorder.rows(); i++)
+467       invreorder(reorder(i)) = i;
+468     \textcolor{keywordflow}{for} (PetscInt el = 0; el < \mbox{\hyperlink{class_element}{Element}}.rows(); el++)
+469     \{
+470         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{short} nd = 0; nd < pow(2,nDims); nd++)
+471         \{
+472             \mbox{\hyperlink{class_element}{Element}}(el,nd) = invreorder(\mbox{\hyperlink{class_element}{Element}}(el,nd));
+473         \}
+474     \}
+475 
+476     \textcolor{keywordflow}{return} ierr;
+477 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_a69a626f34e07b13615847d2d3028f20b}\label{class_mesh_a69a626f34e07b13615847d2d3028f20b}} 
 \index{Mesh@{Mesh}!Redistribute@{Redistribute}}
@@ -545,7 +545,7 @@ Definition at line 376 of file mesh.\+cc.
 \subsubsection{\texorpdfstring{Redistribute()}{Redistribute()}}
 {\footnotesize\ttfamily Petsc\+Error\+Code Mesh\+::\+Redistribute (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
 
-Redistribute Elements Local Element Numbering 
+Redistribute Elements Local \mbox{\hyperlink{class_element}{Element}} Numbering 
 
 Definition at line 126 of file mesh.\+cc.
 
@@ -602,7 +602,7 @@ Definition at line 163 of file mesh.\+cc.
 170 
 171   \textcolor{keywordflow}{if} (myid == 0)
 172   \{
-173     ArrayXI eptr = ArrayXI::LinSpaced(nElem+1, 0, Element.size());
+173     ArrayXI eptr = ArrayXI::LinSpaced(nElem+1, 0, \mbox{\hyperlink{class_element}{Element}}.size());
 174 
 175     \textcolor{comment}{// Verify Inputs}
 176     \textcolor{keywordflow}{if} (nparts <= 0)
@@ -613,42 +613,51 @@ Definition at line 163 of file mesh.\+cc.
 181     \textcolor{comment}{/*if (opts == NULL)                         //0 for default options}
 182 \textcolor{comment}{    \{ opts = new PetscInt; opts[0] = 0;\}*/}
 183 
-184     \textcolor{keywordflow}{if} (tpwgts == NULL)                \textcolor{comment}{//Vertex weight in each subdomain}
-185     \{
-186       tpwgts = \textcolor{keyword}{new} \textcolor{keywordtype}{double}[nparts];
-187       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
-188       \{
-189         tpwgts[i] = 1.0/nparts;
-190       \}
-191     \}
-192 
-193     \textcolor{comment}{// Call METIS}
-194     PetscInt METIS, edgecut;
-195     \textcolor{keywordflow}{if} (\textcolor{keyword}{sizeof}(idx\_t) != \textcolor{keyword}{sizeof}(PetscInt))
-196     \{
-197       cout << \textcolor{stringliteral}{"WARNING, PetscInt and ParMETIS int (PetscInt) are of different "} <<
-198               \textcolor{stringliteral}{"sizes, skipping reordering with ParMETIS.\(\backslash\)n"};
-199       METIS = METIS\_OK;
+184     real\_t *tpwgts\_r;
+185     \textcolor{keywordflow}{if} (tpwgts == NULL)                \textcolor{comment}{//Vertex weight in each subdomain}
+186     \{
+187       tpwgts\_r = \textcolor{keyword}{new} real\_t[nparts];
+188       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
+189       \{
+190         tpwgts\_r[i] = 1.0/nparts;
+191       \}
+192     \}
+193     \textcolor{keywordflow}{else}
+194     \{
+195       tpwgts\_r = \textcolor{keyword}{new} real\_t[nparts];
+196       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
+197       \{
+198         tpwgts\_r[i] = tpwgts[i];
+199       \}
 200     \}
-201     \textcolor{keywordflow}{else}
-202       METIS = METIS\_PartMeshDual(&nElem, &nNode, eptr.data(),
-203               Element.data(), elmwgt, NULL, &nCommonNodes, &nparts,
-204           tpwgts, opts, &edgecut, ePart.data(), nPart.data());
-205 
-206     \textcolor{keyword}{delete}[] tpwgts;
-207     \textcolor{comment}{//delete opts;}
-208 
-209     \textcolor{keywordflow}{if} (METIS != METIS\_OK)
-210     \{
-211       std::cerr << \textcolor{stringliteral}{"Error partitioning matrix! Error code: "} << METIS << \textcolor{stringliteral}{"\(\backslash\)n"};
-212       \textcolor{keywordflow}{return} METIS;
-213     \}
-214   \}
-215 
-216   err = \mbox{\hyperlink{class_mesh_a1c915802d56c4ded24e460e83cfb5399}{ElemDist}}(ePart);
+201 
+202     \textcolor{comment}{// Call METIS}
+203     PetscInt METIS, edgecut;
+204     \textcolor{keywordflow}{if} (\textcolor{keyword}{sizeof}(idx\_t) != \textcolor{keyword}{sizeof}(PetscInt))
+205     \{
+206       cout << \textcolor{stringliteral}{"WARNING, PetscInt and ParMETIS int (PetscInt) are of different "} <<
+207               \textcolor{stringliteral}{"sizes, skipping reordering with ParMETIS.\(\backslash\)n"};
+208       METIS = METIS\_OK;
+209     \}
+210     \textcolor{keywordflow}{else}
+211       METIS = METIS\_PartMeshDual(&nElem, &nNode, eptr.data(),
+212               \mbox{\hyperlink{class_element}{Element}}.data(), elmwgt, NULL, &nCommonNodes, &nparts,
+213           tpwgts\_r, opts, &edgecut, ePart.data(), nPart.data());
+214 
+215     \textcolor{keyword}{delete}[] tpwgts\_r;
+216     \textcolor{comment}{//delete opts;}
 217 
-218   \textcolor{keywordflow}{return} err;
-219 \}
+218     \textcolor{keywordflow}{if} (METIS != METIS\_OK)
+219     \{
+220       std::cerr << \textcolor{stringliteral}{"Error partitioning matrix! Error code: "} << METIS << \textcolor{stringliteral}{"\(\backslash\)n"};
+221       \textcolor{keywordflow}{return} METIS;
+222     \}
+223   \}
+224 
+225   err = \mbox{\hyperlink{class_mesh_a1c915802d56c4ded24e460e83cfb5399}{ElemDist}}(ePart);
+226 
+227   \textcolor{keywordflow}{return} err;
+228 \}
 \end{DoxyCode}
 \mbox{\Hypertarget{class_mesh_ab9c61b0cf7cbcb8738d0e904fe532e91}\label{class_mesh_ab9c61b0cf7cbcb8738d0e904fe532e91}} 
 \index{Mesh@{Mesh}!Reorder\+Par\+M\+E\+T\+IS@{Reorder\+Par\+M\+E\+T\+IS}}
@@ -660,74 +669,95 @@ Get element partitioning in parallel Verify Inputs
 
 Initialize Par\+M\+E\+T\+IS Variables 
 
-Definition at line 224 of file mesh.\+cc.
+Definition at line 233 of file mesh.\+cc.
 
 
 \begin{DoxyCode}
-227 \{
-228   PetscErrorCode err = 0;
-229 
-231   \textcolor{keywordflow}{if} (nparts <= 0)
-232     nparts = nprocs;
-233   \textcolor{keywordflow}{if} (nCommonNodes <= 0)
-234     nCommonNodes = pow(2, nDims-1);
-235 
-236   \textcolor{comment}{// Local Element Descriptions - Element contains the Nodes,}
-237   \textcolor{comment}{// eptr specifies where each Element starts}
-238   \textcolor{keywordtype}{short} elementSize = pow(2,nDims);
-239   Eigen::Array<PetscInt, -1, -1> eptr =
-240     Eigen::Array<PetscInt, -1, 1>::LinSpaced(nLocElem+1,0,nLocElem*elementSize);
-241   Eigen::Array<PetscInt, -1, 1> partition = myid*Eigen::Array<PetscInt, -1, 1>::Ones(nLocElem);
-242 
-244   \textcolor{keywordflow}{if} (ubvec == NULL)                            \textcolor{comment}{//Imbalance tolerance}
-245   \{
-246     ubvec = \textcolor{keyword}{new} real\_t[ncon];
-247     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < ncon; i++)
-248       ubvec[i] = 1.05+(\textcolor{keywordtype}{double})nparts/nElem;
-249   \}
-250 
-251   \textcolor{keywordflow}{if} (opts == NULL)                         \textcolor{comment}{//0 for default options}
-252   \{ opts = \textcolor{keyword}{new} PetscInt; opts[0] = 0;\}
-253 
-254   \textcolor{keywordflow}{if} (tpwgts == NULL)                \textcolor{comment}{//Vertex weight in each subdomain}
+236 \{
+237   PetscErrorCode err = 0;
+238 
+240   \textcolor{keywordflow}{if} (nparts <= 0)
+241     nparts = nprocs;
+242   \textcolor{keywordflow}{if} (nCommonNodes <= 0)
+243     nCommonNodes = pow(2, nDims-1);
+244 
+245   \textcolor{comment}{// Local Element Descriptions - Element contains the Nodes,}
+246   \textcolor{comment}{// eptr specifies where each Element starts}
+247   \textcolor{keywordtype}{short} elementSize = pow(2,nDims);
+248   Eigen::Array<PetscInt, -1, -1> eptr =
+249     Eigen::Array<PetscInt, -1, 1>::LinSpaced(nLocElem+1,0,nLocElem*elementSize);
+250   Eigen::Array<PetscInt, -1, 1> partition = myid*Eigen::Array<PetscInt, -1, 1>::Ones(nLocElem);
+251 
+253   real\_t *ubvec\_r;
+254   \textcolor{keywordflow}{if} (ubvec == NULL)                            \textcolor{comment}{//Imbalance tolerance}
 255   \{
-256     tpwgts = \textcolor{keyword}{new} \textcolor{keywordtype}{double}[ncon*nparts];
-257     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
-258     \{
-259       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} j = 0; j < ncon; j++)
-260         tpwgts[i*ncon+j] = 1.0/nparts;
-261     \}
-262   \}
-263   PetscInt edgecut;
-264 
-265   \textcolor{comment}{// Call ParMETIS}
-266   PetscInt METIS;
-267   \textcolor{keywordflow}{if} (\textcolor{keyword}{sizeof}(idx\_t) != \textcolor{keyword}{sizeof}(PetscInt))
-268   \{
-269     cout << \textcolor{stringliteral}{"WARNING, PetscInt and ParMETIS int (PetscInt) are of different "} <<
-270             \textcolor{stringliteral}{"sizes, skipping reordering with ParMETIS.\(\backslash\)n"};
-271     partition.setConstant(myid); METIS = METIS\_OK;
-272   \}
-273   \textcolor{keywordflow}{else}
-274     METIS = ParMETIS\_V3\_PartMeshKway(elDist.data(), eptr.data(),
-275             Element.data(), elmwgt, &wgtflag, &numflag, &ncon,
-276             &nCommonNodes, &nparts, tpwgts, ubvec, opts,
-277             &edgecut, partition.data(), &comm);
-278   
-279   \textcolor{keyword}{delete}[] ubvec;
-280   \textcolor{keyword}{delete}[] tpwgts;
-281   \textcolor{keyword}{delete} opts;
-282 
-283   \textcolor{keywordflow}{if} (METIS != METIS\_OK)
+256     ubvec\_r = \textcolor{keyword}{new} real\_t[ncon];
+257     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < ncon; i++)
+258       ubvec\_r[i] = 1.05+(\textcolor{keywordtype}{double})nparts/nElem;
+259   \}
+260   \textcolor{keywordflow}{else}
+261   \{
+262     ubvec\_r = \textcolor{keyword}{new} real\_t[ncon];
+263     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < ncon; i++)
+264       ubvec\_r[i] = ubvec[i];
+265   \}
+266 
+267   idx\_t *opts\_r;
+268   \textcolor{keywordflow}{if} (opts == NULL)                         \textcolor{comment}{//0 for default options}
+269   \{ opts\_r = \textcolor{keyword}{new} PetscInt; opts\_r[0] = 0; \}
+270   \textcolor{keywordflow}{else}
+271   \{ opts\_r = \textcolor{keyword}{new} PetscInt; opts\_r[0] = opts[0]; \}
+272 
+273   real\_t *tpwgts\_r;
+274   \textcolor{keywordflow}{if} (tpwgts == NULL)                \textcolor{comment}{//Vertex weight in each subdomain}
+275   \{
+276     tpwgts\_r = \textcolor{keyword}{new} real\_t[ncon*nparts];
+277     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
+278     \{
+279       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} j = 0; j < ncon; j++)
+280         tpwgts\_r[i*ncon+j] = 1.0/nparts;
+281     \}
+282   \}
+283   \textcolor{keywordflow}{else}
 284   \{
-285     std::cerr << \textcolor{stringliteral}{"Error partitioning matrix! Error code: "} << METIS << \textcolor{stringliteral}{"\(\backslash\)n"};
-286     \textcolor{keywordflow}{return} METIS;
-287   \}
-288 
-289   err = \mbox{\hyperlink{class_mesh_a1c915802d56c4ded24e460e83cfb5399}{ElemDist}}(partition);
-290 
-291   \textcolor{keywordflow}{return} err;
-292 \}
+285     tpwgts\_r = \textcolor{keyword}{new} real\_t[ncon*nparts];
+286     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < nparts; i++)
+287     \{
+288       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} j = 0; j < ncon; j++)
+289         tpwgts\_r[i*ncon+j] = tpwgts[i*ncon+j];
+290     \}
+291   \}
+292 
+293   PetscInt edgecut;
+294 
+295   \textcolor{comment}{// Call ParMETIS}
+296   PetscInt METIS;
+297   \textcolor{keywordflow}{if} (\textcolor{keyword}{sizeof}(idx\_t) != \textcolor{keyword}{sizeof}(PetscInt))
+298   \{
+299     cout << \textcolor{stringliteral}{"WARNING, PetscInt and ParMETIS int (PetscInt) are of different "} <<
+300             \textcolor{stringliteral}{"sizes, skipping reordering with ParMETIS.\(\backslash\)n"};
+301     partition.setConstant(myid); METIS = METIS\_OK;
+302   \}
+303   \textcolor{keywordflow}{else}
+304     METIS = ParMETIS\_V3\_PartMeshKway(elDist.data(), eptr.data(),
+305             \mbox{\hyperlink{class_element}{Element}}.data(), elmwgt, &wgtflag, &numflag, &ncon,
+306             &nCommonNodes, &nparts, tpwgts\_r, ubvec\_r, opts\_r,
+307             &edgecut, partition.data(), &comm);
+308   
+309   \textcolor{keyword}{delete}[] ubvec\_r;
+310   \textcolor{keyword}{delete}[] tpwgts\_r;
+311   \textcolor{keyword}{delete} opts\_r;
+312 
+313   \textcolor{keywordflow}{if} (METIS != METIS\_OK)
+314   \{
+315     std::cerr << \textcolor{stringliteral}{"Error partitioning matrix! Error code: "} << METIS << \textcolor{stringliteral}{"\(\backslash\)n"};
+316     \textcolor{keywordflow}{return} METIS;
+317   \}
+318 
+319   err = \mbox{\hyperlink{class_mesh_a1c915802d56c4ded24e460e83cfb5399}{ElemDist}}(partition);
+320 
+321   \textcolor{keywordflow}{return} err;
+322 \}
 \end{DoxyCode}
 
 
