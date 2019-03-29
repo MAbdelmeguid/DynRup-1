@@ -181,12 +181,21 @@ PetscErrorCode Mesh::ReorderMETIS(PetscInt nparts, PetscInt nCommonNodes,
     /*if (opts == NULL)                         //0 for default options
     { opts = new PetscInt; opts[0] = 0;}*/
 
+    real_t *tpwgts_r;
     if (tpwgts == NULL)                //Vertex weight in each subdomain
     {
-      tpwgts = new double[nparts];
+      tpwgts_r = new real_t[nparts];
       for (int i = 0; i < nparts; i++)
       {
-        tpwgts[i] = 1.0/nparts;
+        tpwgts_r[i] = 1.0/nparts;
+      }
+    }
+    else
+    {
+      tpwgts_r = new real_t[nparts];
+      for (int i = 0; i < nparts; i++)
+      {
+        tpwgts_r[i] = tpwgts[i];
       }
     }
 
@@ -201,9 +210,9 @@ PetscErrorCode Mesh::ReorderMETIS(PetscInt nparts, PetscInt nCommonNodes,
     else
       METIS = METIS_PartMeshDual(&nElem, &nNode, eptr.data(),
               Element.data(), elmwgt, NULL, &nCommonNodes, &nparts,
-	      tpwgts, opts, &edgecut, ePart.data(), nPart.data());
+	      tpwgts_r, opts, &edgecut, ePart.data(), nPart.data());
 
-    delete[] tpwgts;
+    delete[] tpwgts_r;
     //delete opts;
 
     if (METIS != METIS_OK)
@@ -241,25 +250,46 @@ PetscErrorCode Mesh::ReorderParMETIS(PetscInt nparts, PetscInt nCommonNodes, Pet
   Eigen::Array<PetscInt, -1, 1> partition = myid*Eigen::Array<PetscInt, -1, 1>::Ones(nLocElem);
 
   /// Initialize ParMETIS Variables
+  real_t *ubvec_r;
   if (ubvec == NULL)                            //Imbalance tolerance
   {
-    ubvec = new real_t[ncon];
+    ubvec_r = new real_t[ncon];
     for (int i = 0; i < ncon; i++)
-      ubvec[i] = 1.05+(double)nparts/nElem;
+      ubvec_r[i] = 1.05+(double)nparts/nElem;
+  }
+  else
+  {
+    ubvec_r = new real_t[ncon];
+    for (int i = 0; i < ncon; i++)
+      ubvec_r[i] = ubvec[i];
   }
 
+  idx_t *opts_r;
   if (opts == NULL)                         //0 for default options
-  { opts = new PetscInt; opts[0] = 0;}
+  { opts_r = new PetscInt; opts_r[0] = 0; }
+  else
+  { opts_r = new PetscInt; opts_r[0] = opts[0]; }
 
+  real_t *tpwgts_r;
   if (tpwgts == NULL)                //Vertex weight in each subdomain
   {
-    tpwgts = new double[ncon*nparts];
+    tpwgts_r = new real_t[ncon*nparts];
     for (int i = 0; i < nparts; i++)
     {
       for (int j = 0; j < ncon; j++)
-        tpwgts[i*ncon+j] = 1.0/nparts;
+        tpwgts_r[i*ncon+j] = 1.0/nparts;
     }
   }
+  else
+  {
+    tpwgts_r = new real_t[ncon*nparts];
+    for (int i = 0; i < nparts; i++)
+    {
+      for (int j = 0; j < ncon; j++)
+        tpwgts_r[i*ncon+j] = tpwgts[i*ncon+j];
+    }
+  }
+
   PetscInt edgecut;
 
   // Call ParMETIS
@@ -273,12 +303,12 @@ PetscErrorCode Mesh::ReorderParMETIS(PetscInt nparts, PetscInt nCommonNodes, Pet
   else
     METIS = ParMETIS_V3_PartMeshKway(elDist.data(), eptr.data(),
             Element.data(), elmwgt, &wgtflag, &numflag, &ncon,
-            &nCommonNodes, &nparts, tpwgts, ubvec, opts,
+            &nCommonNodes, &nparts, tpwgts_r, ubvec_r, opts_r,
             &edgecut, partition.data(), &comm);
   
-  delete[] ubvec;
-  delete[] tpwgts;
-  delete opts;
+  delete[] ubvec_r;
+  delete[] tpwgts_r;
+  delete opts_r;
 
   if (METIS != METIS_OK)
   {
